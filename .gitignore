@@ -1,0 +1,17 @@
+# Terraform working folder (downloaded providers, large files)
+.terraform/
+
+# State files: may contain sensitive data, never commit
+*.tfstate
+*.tfstate.*
+
+# Saved plans and crash logs
+*.tfplan
+tfplan
+crash.log
+crash.*.log
+
+# Variable files that may hold secrets
+*.tfvars
+*.tfvars.json
+
