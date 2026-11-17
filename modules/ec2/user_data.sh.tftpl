@@ -1,0 +1,32 @@
+#!/bin/bash
+# Runs ONCE as root when the instance first boots
+set -euo pipefail  # Stop on any error
+
+# Create a system user with no login shell, so the app does not run as root
+useradd --system --no-create-home --shell /sbin/nologin apiuser
+
+# Copy the app code onto the instance (Terraform inserts it here)
+mkdir -p /opt/app
+cat > /opt/app/app.py <<'EOF'
+${app_code}
+EOF
+chown -R apiuser:apiuser /opt/app
+
+# systemd service: starts the app on boot and restarts it if it crashes
+cat > /etc/systemd/system/api.service <<EOF
+[Unit]
+Description=Python API
+After=network-online.target
+
+[Service]
+User=apiuser
+Environment=APP_PORT=${app_port}
+ExecStart=/usr/bin/python3 /opt/app/app.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable --now api
